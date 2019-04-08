@@ -118,8 +118,6 @@ func GetSessionByAccount(username, password string) (id string) {
 	for sessionID, session := range sessions {
 		if session.username == username &&
 			session.VerifyPassword(password) {
-			// Reset timeout of this session
-			session.updateChan <- nil
 			id = sessionID
 			return
 		}
@@ -136,8 +134,31 @@ type Session struct {
 	passwordHash  []byte
 	authenticator backends.Authenticator
 	storage       backends.Storage
+	activeClients int
 
 	isActive bool
+}
+
+func (s *Session) Increment() {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	s.activeClients++
+	// Reset timeout of this session
+	s.updateChan <- nil
+}
+
+func (s *Session) Decrement() {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	s.activeClients--
+	// Reset timeout of this session
+	s.updateChan <- nil
+}
+
+func (s *Session) ActiveClients() int {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return s.activeClients
 }
 
 func (s *Session) IsActive() bool {
@@ -187,7 +208,13 @@ func (s *Session) timeoutLoop() {
 			continue
 		case <-time.After(sessionTimeout):
 			s.mutex.Lock()
-			defer s.mutex.Unlock()
+			if s.activeClients > 0 {
+				// There is someone currently downloading a file or something,
+				// keep this session open for now by resetting the timeout.
+				// Side effect is the rest timeout is "random".
+				s.mutex.Unlock()
+				continue
+			}
 			s.isActive = false
 			if s.storage != nil {
 				s.storage.Close()
@@ -197,6 +224,7 @@ func (s *Session) timeoutLoop() {
 			}
 			s.storage = nil
 			s.authenticator = nil
+			s.mutex.Unlock()
 		}
 		break
 	}

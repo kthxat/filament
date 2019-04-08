@@ -50,6 +50,9 @@ func NewFrontendServer(config *config.HTTPConfig) *FrontendServer {
 			return
 		}
 
+		session.Increment()
+		defer session.Decrement()
+
 		relpath := c.Param("path")
 		fileInfo, err := session.Storage().Stat(relpath)
 		if err != nil {
