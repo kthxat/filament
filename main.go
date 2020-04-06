@@ -7,8 +7,8 @@ import (
 	"syscall"
 	"time"
 
-	"git.kthx.at/icedream/filament/config"
-	"git.kthx.at/icedream/filament/frontend"
+	"github.com/kthxat/filament/config"
+	"github.com/kthxat/filament/frontend"
 	"github.com/davecgh/go-spew/spew"
 )
 

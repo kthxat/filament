@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"git.kthx.at/icedream/filament/backends"
+	"github.com/kthxat/filament/backends"
 	"github.com/secsy/goftp"
 )
 

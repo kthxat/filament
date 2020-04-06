@@ -1,4 +1,4 @@
-module git.kthx.at/icedream/filament
+module github.com/kthxat/filament
 
 go 1.12
 

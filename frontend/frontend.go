@@ -16,9 +16,9 @@ import (
 	gintemplate "github.com/foolin/gin-template"
 	"github.com/foolin/gin-template/supports/gorice"
 	"github.com/gin-gonic/gin"
+	"github.com/kthxat/filament/app"
+	"github.com/kthxat/filament/config"
 
-	"git.kthx.at/icedream/filament/app"
-	"git.kthx.at/icedream/filament/config"
 )
 
 type FrontendServer struct {

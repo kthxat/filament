@@ -8,8 +8,8 @@ import (
 	"github.com/rs/xid"
 	"golang.org/x/crypto/bcrypt"
 
-	"git.kthx.at/icedream/filament/backends"
-	"git.kthx.at/icedream/filament/config"
+	"github.com/kthxat/filament/backends"
+	"github.com/kthxat/filament/config"
 )
 
 var sessionTimeout = 5 * time.Minute

@@ -3,7 +3,7 @@ package backend_ftp
 import (
 	"github.com/secsy/goftp"
 
-	"git.kthx.at/icedream/filament/backends"
+	"github.com/kthxat/filament/backends"
 )
 
 func (b *FTPBackend) Authenticate(username, password string) (ok bool, err error) {
