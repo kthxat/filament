@@ -137,6 +137,8 @@ type Session struct {
 	activeClients int
 
 	isActive bool
+
+	language string
 }
 
 func (s *Session) Increment() {
@@ -199,6 +201,18 @@ func (s *Session) SetAuthenticator(authenticator backends.Authenticator) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	s.authenticator = authenticator
+}
+
+func (s *Session) Language() string {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return s.language
+}
+
+func (s *Session) SetLanguage(value string) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	s.language = value
 }
 
 func (s *Session) timeoutLoop() {

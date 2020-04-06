@@ -1,29 +1,43 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-<head>
-<title>{{.Path}}</title>
-<style type="text/css">
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-}
-</style>
-</head>
-<body>
-<h1><code>{{.Path}}</code></h1>
-<ul>
-{{with .ParentPath}}
-<li>
-<a href="{{.}}/"><code>{{.}}/</code></a>
-</li>
-{{end}}
-{{range .Files}}
-<li>
-<a href="{{.Name}}{{if .IsDir}}/{{end}}"><code>{{.Name -}}{{if .IsDir}}/{{end}}</code></a>
-{{if not .IsDir}}
-({{humanize_bytes .Size}})
-{{end}}
-</li>
-{{end}}
-</ul>
-</body>
+  <head>
+    <title>{{.Path}}</title>
+    <style type="text/css">
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+          "Segoe UI Symbol";
+      }
+    </style>
+  </head>
+  <body>
+    <h1><code>{{.Path}}</code></h1>
+    {{with .Actions}}
+    <ul>
+      {{range .}}
+      <li>
+        {{if .Link}}
+        <a href="{{.Link}}">
+          [ {{.Name}} ]
+        </a>
+        {{end}}
+      </li>
+      {{end}}
+    </ul>
+    {{end}}
+    <ul>
+      {{with .ParentPath}}
+      <li>
+        <a href="{{.}}/"><code>{{.}}/</code></a>
+      </li>
+      {{end}} {{range .Files}}
+      <li>
+        <a href="{{.Name}}{{if .IsDir}}/{{end}}"
+          ><code>{{.Name -}}{{if .IsDir}}/{{end}}</code></a
+        >
+        {{if not .IsDir}} ({{humanize_bytes .Size}}) {{end}}
+      </li>
+      {{end}}
+    </ul>
+  </body>
 </html>
