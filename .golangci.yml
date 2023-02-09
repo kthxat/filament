@@ -1,0 +1,72 @@
+run:
+  tests: false
+  timeout: 5m
+
+linters-settings:
+  cyclop:
+    max-complexity: 15
+  # https://github.com/golangci/golangci-lint/issues/2610
+  revive:
+    severity: warning
+    confidence: 0.8
+
+linters:
+  enable-all: true
+  disable:
+  - interfacer # deprecated
+  - scopelint # deprecated
+  - maligned # deprecated
+  - golint # deprecated
+  - structcheck # deprecated, replaced by unused
+  - ifshort # deprecated, replaced by unused
+  - deadcode # deprecated, replaced by unused
+  - varcheck # deprecated, replaced by unused
+  - nosnakecase # deprecated, replaced by revive(var-naming)
+  - gocyclo # duplicate of cyclop
+  - dupword # TODO - make this only act on comments
+  - exhaustive
+  - exhaustivestruct
+  - exhaustruct
+  - forcetypeassert
+  - funlen
+  - gochecknoglobals
+  - gochecknoinits
+  - godox
+  - goerr113
+  - gomnd
+  - ireturn
+  - nilnil
+  - nlreturn
+  - noctx
+  - nonamedreturns
+  - promlinter
+  - tagliatelle
+  - varnamelen
+  - wrapcheck
+  - wsl
+
+issues:
+  exclude-use-default: false
+  exclude-rules:
+  # Mute errors about long lines for go:generate lines since those can't be
+  # split.
+  - linters:
+    - lll
+    source: ^//go:generate
+  # Do not require error checking on calls to gin's ctx.Error - it just
+  # returned the internally wrapped error object for what is handled by
+  # logging middleware.
+  - source: \.(AbortWith)?Error\(.+
+    path: frontend/
+  - &ignore_st1000
+    # Do not require package comments on app packages
+    text: 'ST1000:'
+    linters:
+    - stylecheck
+    path: backends/
+  - !!merge <<: *ignore_st1000
+    path: app/
+  - !!merge <<: *ignore_st1000
+    path: config/
+  - !!merge <<: *ignore_st1000
+    path: internal/
