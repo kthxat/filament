@@ -1,0 +1,43 @@
+###############################################################################
+# GOLANG
+
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+/filament
+
+# Folders
+_obj
+_test
+
+# Architecture specific extensions/prefixes
+*.[568vq]
+[568vq].out
+
+*.cgo1.go
+*.cgo2.c
+_cgo_defun.c
+_cgo_gotypes.go
+_cgo_export.*
+
+_testmain.go
+
+*.exe
+*.test
+
+###############################################################################
+# RICE
+
+rice-box.go
+
+###############################################################################
+# ADDITIONAL EXCLUDES FOR DOCKER IMAGE BUILDS
+
+*.docker*
+*Docker*
+development/docker/images
+
+###
+
+frontend/frontend/node_modules
