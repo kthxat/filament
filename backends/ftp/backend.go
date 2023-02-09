@@ -1,4 +1,4 @@
-package backend_ftp
+package ftp
 
 import (
 	"crypto/tls"
@@ -43,60 +43,10 @@ func (c *FTPBackendConfiguration) makeFTPClientConfig() (retval goftp.Config, er
 
 func init() {
 	backends.Register(&backends.BackendDescriptor{
-		Id:          "ftp",
+		ID:          "ftp",
 		DisplayName: "FTP",
 		Type:        reflect.TypeOf(new(FTPBackend)),
-		New: func(params *backends.BackendConstructionParams) (backend backends.Backend, err error) {
-			config := new(FTPBackendConfiguration)
-			err = params.Config.Unmarshal(config)
-			if err != nil {
-				return
-			}
-
-			ftpConfig, err := config.makeFTPClientConfig()
-			if err != nil {
-				return
-			}
-
-			// determine which TLS mode to use from URL
-			ftpUrl, err := url.Parse(config.URL)
-			if err != nil {
-				return
-			}
-			switch strings.ToLower(ftpUrl.Scheme) {
-			case "ftps":
-				// implicit
-				ftpConfig.TLSMode = goftp.TLSImplicit
-				ftpConfig.TLSConfig = new(tls.Config)
-			case "ftpes":
-				// explicit
-				ftpConfig.TLSMode = goftp.TLSExplicit
-				ftpConfig.TLSConfig = new(tls.Config)
-			}
-			if ftpConfig.TLSConfig != nil {
-				ftpConfig.TLSConfig.InsecureSkipVerify = config.InsecureSkipVerify
-				if !config.InsecureSkipVerify {
-					if len(config.TLSServerName) > 0 {
-						ftpConfig.TLSConfig.ServerName = config.TLSServerName
-					} else {
-						ftpConfig.TLSConfig.ServerName = ftpUrl.Host
-					}
-				}
-			}
-			if ftpUrl.User != nil {
-				ftpConfig.User = ftpUrl.User.Username()
-				if pw, ok := ftpUrl.User.Password(); ok {
-					ftpConfig.Password = pw
-				}
-			}
-
-			backend = &FTPBackend{
-				configTemplate: ftpConfig,
-				configuredHost: ftpUrl.Host,
-			}
-
-			return
-		},
+		New:         newFTPBackend,
 	})
 }
 
@@ -105,6 +55,56 @@ type FTPBackend struct {
 	client                *goftp.Client
 	configTemplate        goftp.Config
 	configuredHost        string
+}
+
+func newFTPBackend(params *backends.BackendConstructionParams) (backends.Backend, error) {
+	config := new(FTPBackendConfiguration)
+	err := params.Config.Unmarshal(config)
+	if err != nil {
+		return nil, err
+	}
+
+	ftpConfig, err := config.makeFTPClientConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	// determine which TLS mode to use from URL
+	ftpURL, err := url.Parse(config.URL)
+	if err != nil {
+		return nil, err
+	}
+	switch strings.ToLower(ftpURL.Scheme) {
+	case "ftps":
+		// implicit
+		ftpConfig.TLSMode = goftp.TLSImplicit
+		ftpConfig.TLSConfig = new(tls.Config)
+	case "ftpes":
+		// explicit
+		ftpConfig.TLSMode = goftp.TLSExplicit
+		ftpConfig.TLSConfig = new(tls.Config)
+	}
+	if ftpConfig.TLSConfig != nil {
+		ftpConfig.TLSConfig.InsecureSkipVerify = config.InsecureSkipVerify
+		if !config.InsecureSkipVerify {
+			if len(config.TLSServerName) > 0 {
+				ftpConfig.TLSConfig.ServerName = config.TLSServerName
+			} else {
+				ftpConfig.TLSConfig.ServerName = ftpURL.Host
+			}
+		}
+	}
+	if ftpURL.User != nil {
+		ftpConfig.User = ftpURL.User.Username()
+		if pw, ok := ftpURL.User.Password(); ok {
+			ftpConfig.Password = pw
+		}
+	}
+
+	return &FTPBackend{
+		configTemplate: ftpConfig,
+		configuredHost: ftpURL.Host,
+	}, nil
 }
 
 func (b *FTPBackend) Close() (err error) {

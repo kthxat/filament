@@ -1,7 +1,6 @@
 package backends
 
 import (
-	"os"
 	"path"
 	"path/filepath"
 )
@@ -14,20 +13,26 @@ func ReadDirRecursively(storage Storage, relpath string, cb filepath.WalkFunc) e
 
 // ReadDirRecursivelyLimited recursively walks a given storage from a given path.
 // If depth is 0 or less, recursion will be unlimited.
-func ReadDirRecursivelyLimited(storage Storage, relpath string, depth int, cb filepath.WalkFunc) (err error) {
+func ReadDirRecursivelyLimited(
+	storage Storage,
+	relpath string,
+	depth int,
+	cb filepath.WalkFunc,
+) error {
 	pwds := [][]string{} // item: ["depth1","depth2","depth3"]
 	pwd := []string{relpath}
-	var files []os.FileInfo
 	for {
 		spwd := path.Join(pwd...)
-		files, err = storage.ReadDir(spwd)
+		files, err := storage.ReadDir(spwd)
 		if err != nil {
-			cb(spwd, nil, err)
-			return
+			return cb(spwd, nil, err)
 		}
 
 		for _, f := range files {
-			cb(spwd, f, err)
+			err := cb(spwd, f, err)
+			if err != nil {
+				return err
+			}
 			if f.IsDir() {
 				if depth != 0 && depth == len(pwd) {
 					// Can't go deeper since we reached the limit
@@ -38,7 +43,7 @@ func ReadDirRecursivelyLimited(storage Storage, relpath string, depth int, cb fi
 		}
 
 		// If no paths are left, return
-		if len(pwds) <= 0 {
+		if len(pwds) == 0 {
 			break
 		}
 
@@ -47,5 +52,5 @@ func ReadDirRecursivelyLimited(storage Storage, relpath string, depth int, cb fi
 		pwds = pwds[1:]
 	}
 
-	return
+	return nil
 }

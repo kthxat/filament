@@ -1,4 +1,4 @@
-package backend_ftp
+package ftp
 
 import (
 	"io"

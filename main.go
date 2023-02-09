@@ -1,15 +1,18 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/kthxat/filament/config"
 	"github.com/kthxat/filament/frontend"
-	"github.com/davecgh/go-spew/spew"
 )
 
 const (
@@ -40,12 +43,12 @@ func printHeader() {
 		yearStr = fmt.Sprintf("%d", appBuildTime.Year())
 	}
 
-	fmt.Println(appName)
+	fmt.Fprintln(os.Stderr, appName)
 	if len(appVersion) > 0 {
-		fmt.Printf("\tVersion %\n", appVersion)
+		fmt.Fprintf(os.Stderr, "\tVersion %s\n", appVersion)
 	}
-	fmt.Printf("\t\u00a9 %s %s\n", yearStr, appAuthor)
-	fmt.Println()
+	fmt.Fprintf(os.Stderr, "\t\u00a9 %s %s\n", yearStr, appAuthor)
+	fmt.Fprintln(os.Stderr)
 }
 
 func main() {
@@ -54,7 +57,13 @@ func main() {
 	spew.Dump(config.GetConfig())
 
 	server := frontend.NewFrontendServer(config.GetConfig().HTTP)
-	go server.ListenAndServe()
+	go func() {
+		if err := server.ListenAndServe(); errors.Is(err, http.ErrServerClosed) {
+			return
+		} else if err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	sigs := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
@@ -66,5 +75,8 @@ func main() {
 
 	<-done
 
-	server.Close()
+	if err := server.Close(); err != nil {
+		log.Printf("Failed to cleanly shut down server: %s",
+			err.Error())
+	}
 }

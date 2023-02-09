@@ -14,20 +14,18 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kthxat/filament/backends"
-
 	"github.com/BurntSushi/toml"
 	rice "github.com/GeertJohan/go.rice"
 	humanize "github.com/dustin/go-humanize"
 	gintemplate "github.com/foolin/gin-template"
 	"github.com/foolin/gin-template/supports/gorice"
 	"github.com/gin-gonic/gin"
-	"github.com/nicksnyder/go-i18n/v2/i18n"
-
-	"golang.org/x/text/language"
-
 	"github.com/kthxat/filament/app"
+	"github.com/kthxat/filament/backends"
 	"github.com/kthxat/filament/config"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"go.uber.org/multierr"
+	"golang.org/x/text/language"
 )
 
 const (
@@ -72,7 +70,7 @@ func NewFrontendServer(config *config.HTTPConfig) *FrontendServer {
 
 	// Routes
 	authorized.GET("/*path", func(c *gin.Context) {
-		session := app.GetSessionById(c.GetString(gin.AuthUserKey))
+		session := app.GetSessionByID(c.GetString(gin.AuthUserKey))
 		if session == nil {
 			c.AbortWithStatus(http.StatusForbidden)
 			return
@@ -154,33 +152,35 @@ func NewFrontendServer(config *config.HTTPConfig) *FrontendServer {
 					return
 				}
 				fh.Name = file.Path
-				fh.SetModTime(file.FileInfo.ModTime())
+				fh.Modified = file.FileInfo.ModTime()
 
 				if !file.FileInfo.IsDir() {
 					fh.Method = zip.Deflate
 				}
 
-				log.Printf("O % -99s %s", fh.Name, fh.ModTime())
+				log.Printf("O % -99s %s", fh.Name, fh.Modified)
 
 				zw, err := z.CreateHeader(fh)
 				if file.FileInfo.IsDir() {
 					continue
 				}
 				if err != nil {
-					z.SetComment("Incomplete file")
+					multierr.Append(err, z.SetComment("Incomplete file"))
 					c.Error(err)
 					return
 				}
 
 				err = session.Storage().Retrieve(path.Join(relpath, file.Path), zw)
 				if err != nil {
-					z.SetComment("Incomplete file")
+					err = multierr.Append(err, z.SetComment("Incomplete file"))
 					c.Error(err)
 					return
 				}
 			}
 
-			z.Close()
+			if err := z.Close(); err != nil {
+				c.Error(err)
+			}
 			return
 
 		case
@@ -226,7 +226,7 @@ func NewFrontendServer(config *config.HTTPConfig) *FrontendServer {
 				"Path":  relpath,
 				"Files": files,
 				"Actions": []gin.H{
-					gin.H{
+					{
 						"Name": localizedDownloadAsArchiveZIP,
 						"Link": relPathArchiveZip,
 					},
@@ -263,8 +263,6 @@ func NewFrontendServer(config *config.HTTPConfig) *FrontendServer {
 			log.Printf("Writing file from storage to HTTP failed: %s",
 				err.Error())
 		}
-
-		return
 	})
 
 	httpServer := new(http.Server)
@@ -297,7 +295,7 @@ func UsernameBasedSessions(realm string) gin.HandlerFunc {
 			sid = app.Authenticate(username, password)
 		}
 
-		if len(sid) <= 0 {
+		if len(sid) == 0 {
 			// Credentials doesn't match, we return 401 and abort handlers chain.
 			c.Header("WWW-Authenticate", realm)
 			c.AbortWithStatus(http.StatusUnauthorized)

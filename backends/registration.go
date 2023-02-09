@@ -5,23 +5,25 @@ import (
 	"sync"
 )
 
-var backends = []*BackendDescriptor{}
-var backendsLock sync.Mutex
+var (
+	backends     = []*BackendDescriptor{}
+	backendsLock sync.Mutex
+)
 
 // Register registers a backend using the given descriptor.
 func Register(descriptor *BackendDescriptor) {
 	backendsLock.Lock()
 	defer backendsLock.Unlock()
 
-	if unsyncedGetByID(descriptor.Id) != nil {
-		panic(fmt.Errorf("Tried to register backend %s more than once.", descriptor.Id))
+	if unsyncedGetByID(descriptor.ID) != nil {
+		panic(fmt.Errorf("tried to register backend %s more than once", descriptor.ID))
 	}
 	backends = append(backends, descriptor)
 }
 
 func unsyncedGetByID(id string) (backendDescriptor *BackendDescriptor) {
 	for _, foundDescriptor := range backends {
-		if foundDescriptor.Id == id {
+		if foundDescriptor.ID == id {
 			backendDescriptor = foundDescriptor
 			return
 		}

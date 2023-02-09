@@ -5,19 +5,18 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rs/xid"
-	"golang.org/x/crypto/bcrypt"
-
 	"github.com/kthxat/filament/backends"
 	"github.com/kthxat/filament/config"
+	"github.com/rs/xid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var sessionTimeout = 5 * time.Minute
 
-var activeBackendInstances = []backends.Backend{}
-
-var sessions = map[string]*Session{}
-var sessionsMutex sync.Mutex
+var (
+	sessions      = map[string]*Session{}
+	sessionsMutex sync.Mutex
+)
 
 /*func GC() {
 	sessionsMutex.Lock()
@@ -33,7 +32,7 @@ func unsyncedGC() {
 	}
 }
 
-func GetSessionById(id string) *Session {
+func GetSessionByID(id string) *Session {
 	sessionsMutex.Lock()
 	defer sessionsMutex.Unlock()
 
@@ -48,32 +47,36 @@ func GetSessionById(id string) *Session {
 
 func constructBackend(descriptor *backends.BackendDescriptor) (backend backends.Backend, err error) {
 	backend, err = descriptor.New(&backends.BackendConstructionParams{
-		Config: config.GetBackendConfig(descriptor.Id),
+		Config: config.GetBackendConfig(descriptor.ID),
 	})
 	return
 }
 
 func Authenticate(username, password string) (sid string) {
 	if sid = GetSessionByAccount(username, password); len(sid) > 0 {
-		return
+		return sid
 	}
 
 	for _, backendDescriptor := range backends.GetAll() {
 		backend, err := constructBackend(backendDescriptor)
 		if err != nil {
 			log.Printf("Construction of authenticator %s threw an error: %s",
-				backendDescriptor.Id, err.Error())
+				backendDescriptor.ID, err.Error())
 			continue
 		}
 
 		authenticator, ok := backend.(backends.Authenticator)
 		if !ok {
-			backend.Close()
+			err := backend.Close()
+			if err != nil {
+				log.Printf("Closing of backend threw an error: %s",
+					err)
+			}
 		}
 		ok, err = authenticator.Authenticate(username, password)
 		if err != nil {
 			log.Printf("Authenticator %s threw an error: %s",
-				backendDescriptor.Id, err.Error())
+				backendDescriptor.ID, err.Error())
 			continue
 		}
 		if !ok {
@@ -82,9 +85,12 @@ func Authenticate(username, password string) (sid string) {
 
 		storage, ok := backend.(backends.Storage)
 		if !ok {
-			backend.Close()
+			if err := backend.Close(); err != nil {
+				log.Printf("Closing of backend %s threw an error: %s",
+					backendDescriptor.ID, err.Error())
+			}
 			log.Printf("Backend %s is not authenticator and storage at the same time. This is not yet supported.",
-				backendDescriptor.Id)
+				backendDescriptor.ID)
 			continue
 		}
 
@@ -92,6 +98,11 @@ func Authenticate(username, password string) (sid string) {
 		defer sessionsMutex.Unlock()
 
 		passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+		if err != nil {
+			log.Printf("Bcrypt password hash generation threw an error: %s",
+				err.Error())
+			continue
+		}
 		session := &Session{
 			updateChan:    make(chan interface{}),
 			username:      username,
@@ -105,7 +116,7 @@ func Authenticate(username, password string) (sid string) {
 		go session.timeoutLoop()
 		return
 	}
-	return
+	return sid
 }
 
 func GetSessionByAccount(username, password string) (id string) {
@@ -231,10 +242,16 @@ func (s *Session) timeoutLoop() {
 			}
 			s.isActive = false
 			if s.storage != nil {
-				s.storage.Close()
+				if err := s.storage.Close(); err != nil {
+					log.Printf("Closing of storage threw an error: %s",
+						err)
+				}
 			}
 			if s.authenticator != nil {
-				s.authenticator.Close()
+				if err := s.authenticator.Close(); err != nil {
+					log.Printf("Closing of authenticator threw an error: %s",
+						err)
+				}
 			}
 			s.storage = nil
 			s.authenticator = nil

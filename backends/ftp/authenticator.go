@@ -1,14 +1,14 @@
-package backend_ftp
+package ftp
 
 import (
-	"github.com/secsy/goftp"
-
 	"github.com/kthxat/filament/backends"
+	"github.com/secsy/goftp"
+	"go.uber.org/multierr"
 )
 
 func (b *FTPBackend) Authenticate(username, password string) (ok bool, err error) {
 	if b.client != nil {
-		b.client.Close()
+		err = b.client.Close()
 		b.client = nil
 	}
 
@@ -16,10 +16,9 @@ func (b *FTPBackend) Authenticate(username, password string) (ok bool, err error
 	config.User = username
 	config.Password = password
 
-	b.client, err = goftp.DialConfig(config, b.configuredHost)
-	if err != nil {
-		return
-	}
+	var dialErr error
+	b.client, dialErr = goftp.DialConfig(config, b.configuredHost)
+	err = multierr.Append(err, dialErr)
 
 	b.authenticatedUsername = username
 	ok = true

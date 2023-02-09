@@ -7,12 +7,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-var (
-	ErrUnsupportedOperation = errors.New("unsupported operation")
-)
+var ErrUnsupportedOperation = errors.New("unsupported operation")
 
 type BackendDescriptor struct {
-	Id, DisplayName string
+	ID, DisplayName string
 	Type            reflect.Type
 	New             func(params *BackendConstructionParams) (Backend, error)
 }
