@@ -8,8 +8,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dustin/go-humanize v1.0.1
 	github.com/foolin/gin-template v0.0.0-20190415034731-41efedfb393b
-	github.com/gin-contrib/sessions v0.0.5
-	github.com/gin-gonic/gin v1.8.2
+	github.com/gin-gonic/gin v1.9.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/nicksnyder/go-i18n/v2 v2.2.1
 	github.com/rs/xid v1.4.0
