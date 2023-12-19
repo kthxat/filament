@@ -16,7 +16,7 @@ require (
 	github.com/secsy/goftp v0.0.0-20200609142545-aa2de14babf4
 	github.com/spf13/viper v1.15.0
 	go.uber.org/multierr v1.8.0
-	golang.org/x/crypto v0.9.0
-	golang.org/x/text v0.9.0
+	golang.org/x/crypto v0.17.0
+	golang.org/x/text v0.14.0
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
