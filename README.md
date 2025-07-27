@@ -1,6 +1,6 @@
 # Filament
 
-Filament is a lightweight HTTP-to-FTP server that provides a web interface for accessing files on FTP servers. It acts as a bridge, allowing you to browse and download files from FTP servers through a modern web interface.
+Filament is a lightweight HTTP-to-FTP server that provides a web interface for accessing files on FTP servers. It acts as a bridge, allowing you to browse and download files from FTP servers through a simple web interface.
 
 ## Features
 
@@ -30,9 +30,6 @@ Download the latest release from [GitHub Packages](https://github.com/kthxat/fil
 ```bash
 # Pull the latest image
 docker pull ghcr.io/kthxat/filament:latest
-
-# Or pull a specific version
-docker pull ghcr.io/kthxat/filament:v1.0.0
 ```
 
 ## Configuration
@@ -52,10 +49,6 @@ Timeout = "30s"
 IPv6Lookup = false
 ActiveTransfers = false
 InsecureSkipVerify = false
-
-# Authentication and storage backend selection
-AuthenticationBackend = "ftp1"
-StorageBackend = "ftp1"
 ```
 
 ### Configuration File Locations
@@ -111,8 +104,7 @@ Requirements:
 git clone https://github.com/kthxat/filament.git
 cd filament
 
-# Generate resources and build
-go generate -v ./...
+# Build
 go build -v .
 
 # Run
@@ -131,13 +123,6 @@ go build -v .
 - **Docker Images**: Available on [GitHub Container Registry](https://github.com/kthxat/filament/pkgs/container/filament)
 - **Source Releases**: Check the [releases page](https://github.com/kthxat/filament/releases) for source archives
 
-### Supported Architectures
-
-- `linux/amd64`
-- `linux/arm64`
-- `linux/arm/v7`
-- `linux/arm/v6`
-
 ## Development
 
 ### Prerequisites
@@ -148,9 +133,6 @@ go build -v .
 ### Building
 
 ```bash
-# Install dependencies and generate resources
-go generate -v ./...
-
 # Build the application
 go build -v .
 
@@ -167,11 +149,3 @@ docker build -t filament:dev .
 # Run development container
 docker run -p 8080:8080 filament:dev
 ```
-
-## License
-
-This project is developed by Carl Kittelberger.
-
----
-
-For more information, visit the [GitHub repository](https://github.com/kthxat/filament).
