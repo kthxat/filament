@@ -94,23 +94,6 @@ Then run:
 docker-compose up -d
 ```
 
-### Building from Source
-
-Requirements:
-- Go 1.23.0 or later
-
-```bash
-# Clone the repository
-git clone https://github.com/kthxat/filament.git
-cd filament
-
-# Build
-go build -v .
-
-# Run
-./filament
-```
-
 ## Usage
 
 1. Start Filament with your configuration
@@ -123,16 +106,22 @@ go build -v .
 - **Docker Images**: Available on [GitHub Container Registry](https://github.com/kthxat/filament/pkgs/container/filament)
 - **Source Releases**: Check the [releases page](https://github.com/kthxat/filament/releases) for source archives
 
-## Development
+## Building from Source
+
+For users who want to build from source or developers who want to contribute to the project.
 
 ### Prerequisites
 
 - Go 1.23.0+
-- Docker (for containerized development)
+- Docker (optional, for containerized development)
 
-### Building
+### Building and Running
 
 ```bash
+# Clone the repository
+git clone https://github.com/kthxat/filament.git
+cd filament
+
 # Build the application
 go build -v .
 
