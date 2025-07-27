@@ -1,4 +1,4 @@
-FROM golang:1.22-alpine
+FROM golang:1.24.5-alpine3.22
 
 RUN apk add --no-cache git
 
@@ -11,7 +11,7 @@ RUN go build -v -o /output/filament .
 
 ###
 
-FROM alpine:3.17
+FROM alpine:3.22
 
 RUN apk add mailcap ca-certificates
 
