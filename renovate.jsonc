@@ -1,0 +1,46 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests",
+    ":semanticCommits",
+    ":semanticCommitTypeAll(chore)",
+    ":semanticCommitScope(deps)",
+    ":rebaseStalePrs",
+    ":automergeDigest",
+    "schedule:earlyMondays"
+  ],
+  "labels": ["dependencies"],
+  "postUpdateOptions": ["gomodTidy", "gomodUpdateImportPaths"],
+
+  "customManagers": [
+    {
+      // `go-version:` is an input, not a `uses:` line, so it needs its own manager.
+      "customType": "regex",
+      "description": "Update the Go toolchain used by actions/setup-go in CI",
+      "managerFilePatterns": ["/(^|/)\\.github/workflows/.+\\.ya?ml$/"],
+      "matchStrings": [
+        "go-version:\\s*[\"']?(?<currentValue>\\^?\\d+(?:\\.\\d+){0,2})[\"']?"
+      ],
+      "datasourceTemplate": "golang-version",
+      "depNameTemplate": "go",
+      "versioningTemplate": "semver-coerced"
+    }
+  ],
+
+  "packageRules": [
+    {
+      "description": "Group non-major Docker base image updates into one PR",
+      "matchManagers": ["dockerfile", "docker-compose"],
+      "matchUpdateTypes": ["minor", "patch", "pin"],
+      "groupName": "container base images",
+      "groupSlug": "base-images"
+    },
+    {
+      "description": "Name the CI Go toolchain PR clearly",
+      "matchManagers": ["regex"],
+      "matchDepNames": ["go"],
+      "commitMessageTopic": "Go toolchain in CI"
+    }
+  ]
+}
