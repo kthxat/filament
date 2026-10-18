@@ -10,7 +10,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/kthxat/filament/config"
 	"github.com/kthxat/filament/frontend"
 )
@@ -54,7 +53,6 @@ func printHeader() {
 func main() {
 	printHeader()
 	config.ReadConfig(appID)
-	spew.Dump(config.GetConfig())
 
 	server := frontend.NewFrontendServer(config.GetConfig().HTTP)
 	go func() {
